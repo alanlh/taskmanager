@@ -1,0 +1,6 @@
+.job-popup {
+  width: 70%;
+  min-height: 25%;
+  max-height: 80%;
+  overflow-y: auto;
+}

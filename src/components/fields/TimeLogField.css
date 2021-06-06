@@ -1,0 +1,25 @@
+.time-log-field-upper {
+  display: flex;
+  flex-direction: row;
+}
+
+.time-log-field-duration {
+  flex: 0 0 content;
+  padding: 0 1em 0 0;
+}
+
+.time-log-field-description {
+  flex: 1 1;
+}
+
+.time-log-field-lower {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.time-log-field-button {
+  min-width: 6em;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.25em;
+}

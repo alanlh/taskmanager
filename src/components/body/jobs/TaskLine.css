@@ -1,0 +1,49 @@
+.task {
+  background-color: aquamarine;
+  border: 0.1em aqua solid;
+  padding: 0.9em 0.5em 0.5em 0.9em;
+  margin: 0 -1.1em 0 0;
+}
+
+.task-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  padding-bottom: 0.5em;
+}
+
+.task-header-left {
+  flex: 1 1 20%;
+  display: flex;
+}
+
+.task-expand-button {
+  margin-right: 20px;
+  width: 80px;
+}
+
+.task-header-right {
+  flex: 0 0 content;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.task-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-status-buttons {
+  width: fit-content;
+  float: right;
+  align-self: flex-end;
+}
+
+.task-button {
+  width: 100px;
+  margin-left: 10px;
+  margin-right: 10px;
+}

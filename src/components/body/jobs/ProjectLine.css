@@ -1,0 +1,66 @@
+.project {
+  padding: 1em;
+  margin-right: -1.1em;
+  margin-top: -0.1em;
+  border: 0.1em solid black;
+  border-width: 0.1em 0;
+  border-radius: 0.1em;
+}
+
+.project-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.project-header-left {
+  flex: 1 1 50%;
+  display: flex;
+}
+
+.project-expand-button {
+  width: 80px;
+  margin-right: 20px;
+}
+
+.project-namefield {
+  flex: 1 1 100%;
+}
+
+.project-header-right {
+  align-content: right;
+  width: fit-content;
+}
+
+.project-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-description {
+  min-height: 1em;
+  padding: 10px;
+  border: 1px solid black;
+  margin: 10px;
+}
+
+.project-status-buttons {
+  width: fit-content;
+  align-self: flex-end;
+}
+
+.project-button {
+  width: 100px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.project-tasks {
+  padding: 0.5em;
+}

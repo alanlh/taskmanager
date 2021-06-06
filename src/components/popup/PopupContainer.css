@@ -1,0 +1,24 @@
+.form-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid #f1f1f1;  
+
+  background-color: #aaeecc;
+  padding: 1em;
+}
+
+.form-popup-close {
+  position: absolute;
+  right: 0.25em;
+  top: 0.25em;
+}
+
+.form-popup-title {
+  max-width: 80%;
+}
+
+.form-popup-container {
+  margin-top: 1em;
+}

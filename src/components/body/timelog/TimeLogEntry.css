@@ -1,0 +1,24 @@
+.time-log-entry {
+  display: flex;
+  flex-direction: row;
+  padding: 0.5vh 0;
+}
+
+.time-log-entry-time {
+  flex: 0 0 auto;
+  margin: 0 1em 0 0;
+}
+
+.time-log-entry-description {
+  flex: 1 1 auto;
+}
+
+.time-log-entry-edit {
+  flex: 0 0 auto;
+  margin: 0 0.5em;
+}
+
+.time-log-entry-delete {
+  flex: 0 0 auto;
+  margin: 0 0.5em;
+}

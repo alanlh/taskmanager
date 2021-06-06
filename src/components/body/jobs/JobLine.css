@@ -1,0 +1,11 @@
+.job-button {
+  min-width: 6em;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.5em;
+}
+
+.project-description, .task-description {
+  max-height: 40vh;
+  white-space: pre-wrap;
+  overflow-y: hidden;
+}

@@ -1,0 +1,31 @@
+.time-log-list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.time-log-list-header-title {
+  font-weight: bold;
+  font-size: larger;
+  flex: 1 1;
+}
+
+.time-log-list-header-time-spent {
+  margin: 0 0.5em;
+  flex: 0 0 content;
+}
+
+.time-log-list-header-new-log-button {
+  min-width: 6em;
+  padding: 0.25em 0.5em;
+  margin: 0.25em 0.25em;
+}
+
+.time-log-list-header-new-log-entry {
+  padding-left: 1em;
+}
+
+.time-log-list-entries {
+  padding-left: 1em;
+}

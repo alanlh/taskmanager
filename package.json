@@ -12,6 +12,7 @@
     "@types/react-dom": "^17.0.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-modal": "^3.14.2",
     "react-scripts": "4.0.3",
     "typescript": "^4.2.4",
     "web-vitals": "^1.1.1"
@@ -20,13 +21,23 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "react-hooks/exhaustive-deps": [
+        "warn",
+        {
+          "additionalHooks": "useDatabaseState, useOnContainerBlur, useToggleState"
+        }
+      ]
+    }
   },
   "browserslist": {
     "production": [
@@ -39,5 +50,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {
+    "@types/react-modal": "^3.12.0",
+    "gh-pages": "^3.2.0"
+  },
+  "homepage": "https://alanlh.github.io/taskmanager"
 }
