@@ -23,25 +23,26 @@ export default class StatusTable extends Table<ValidStatusTableColumn, StatusTab
   constructor() {
     super({
       tableName: "STATUS_TABLE",
-      columnCount: StatusTableColumns.__LENGTH,
-      columnNames: [
-        "STATUS_ENTRY_ID",
-        "STATUS_VALUE",
-        "STATUS_TYPE",
-        "JOB_ID",
-      ],
-      defaultValues: [
-        "", "", "", "",
-      ],
-      indexedColumns: [
-        StatusTableColumns.JOB_ID,
-        StatusTableColumns.STATUS_TYPE,
-        StatusTableColumns.STATUS_VALUE,
-      ],
+      columnEnum: StatusTableColumns,
       keyColumn: StatusTableColumns.STATUS_ENTRY_ID,
-      trackingTables: new Map([
-        [StatusTableColumns.STATUS_VALUE, Tables.StatusLog],
-      ]),
+      columnParams: {
+        [StatusTableColumns.STATUS_ENTRY_ID]: {
+          defaultValueGenerator: () => this.getUniqueKey(),
+        },
+        [StatusTableColumns.STATUS_VALUE]: {
+          defaultValueGenerator: () => "",
+          indexed: true,
+          trackingTable: Tables.StatusLog,
+        },
+        [StatusTableColumns.STATUS_TYPE]: {
+          defaultValueGenerator: () => "",
+          indexed: true,
+        },
+        [StatusTableColumns.JOB_ID]: {
+          defaultValueGenerator: () => "",
+          indexed: true,
+        },
+      }
     })
   }
 

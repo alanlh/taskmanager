@@ -1,6 +1,7 @@
 import { JobType } from "../../data/JobType";
 import { Tables } from "../LocalDatabase";
 import Table from "./Table";
+import TrackingTable from "./TrackingTable";
 
 export enum JobColumn {
   ID, NAME, JOB_TYPE,
@@ -24,25 +25,52 @@ export default class JobTable extends Table<ValidJobColumn, JobColumnTypes, JobC
   constructor() {
     super({
       tableName: "JOBS",
-      columnCount: JobColumn.__LENGTH,
-      columnNames: ([...Array(JobColumn.__LENGTH).keys()] as JobColumn[]).map((val) => JobColumn[val]) as unknown as any, //i hate typescript
       keyColumn: JobColumn.ID,
-      indexedColumns: [
-        JobColumn.JOB_TYPE, JobColumn.CHILD_PROJECT_OF, JobColumn.CHILD_TASK_OF,
-      ],
-      defaultValues: [
-        "", "", JobType.Task,
-        undefined, undefined,
-        "", new Date(),
-        0, 0, 0,
-        0,
-      ],
-      trackingTables: new Map([
-        [JobColumn.DUE_DATE, Tables.DueDateLog],
-        [JobColumn.BEST_CASE_TIME, Tables.EstTimeBest],
-        [JobColumn.ESTIMATED_TIME, Tables.EstTimeExpected],
-        [JobColumn.WORST_CASE_TIME, Tables.EstTimeWorst],
-      ]),
+      columnEnum: JobColumn,
+      columnParams: {
+        [JobColumn.ID]: {
+          columnName: "ID",
+          defaultValueGenerator: () => this.getUniqueKey(),
+        },
+        [JobColumn.NAME]: {
+          columnName: "NAME",
+          defaultValueGenerator: () => "",
+        },
+        [JobColumn.JOB_TYPE]: {
+          defaultValueGenerator: () => JobType.Task,
+          indexed: true,
+        },
+        [JobColumn.CHILD_TASK_OF]: {
+          defaultValueGenerator: () => undefined,
+          indexed: true,
+        },
+        [JobColumn.CHILD_PROJECT_OF]: {
+          defaultValueGenerator: () => undefined,
+          indexed: true,
+        },
+        [JobColumn.DESCRIPTION]: {
+          defaultValueGenerator: () => "",
+        },
+        [JobColumn.DUE_DATE]: {
+          defaultValueGenerator: () => new Date(),
+          trackingTable: Tables.DueDateLog,
+        },
+        [JobColumn.BEST_CASE_TIME]: {
+          defaultValueGenerator: () => 0,
+          trackingTable: Tables.EstTimeBest,
+        },
+        [JobColumn.ESTIMATED_TIME]: {
+          defaultValueGenerator: () => 0,
+          trackingTable: Tables.EstTimeExpected,
+        },
+        [JobColumn.WORST_CASE_TIME]: {
+          defaultValueGenerator: () => 0,
+          trackingTable: Tables.EstTimeWorst,
+        },
+        [JobColumn.MINUTES_SPENT]: {
+          defaultValueGenerator: () => 0,
+        },
+      },
     });
   }
 

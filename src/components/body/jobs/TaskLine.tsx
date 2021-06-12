@@ -27,7 +27,6 @@ const TaskLine = ({ taskId }: ITaskLineParams) => {
 
   const [isPopupOpen, openPopup, closePopup] = useToggleState(false);
   const [isTimeLogWidgetOpen, showTimeLogWidget, closeTimeLogWidget] = useToggleState(false);
-  //const widgetOnBlur = useOnContainerBlur(closeTimeLogWidget, [closeTimeLogWidget]);
 
   return <div className="task">
     <div className="task-header">

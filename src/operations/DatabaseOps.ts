@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef, RefObject, MutableRefObject } from "react";
 import Database, { Tables, ColumnDef, ColumnType, KeyType, ColumnTypes } from "../database/LocalDatabase";
-import { OptionalTuple } from "../database/tables/Table";
+import { OptionalTuple } from "../utility/Types";
 
 const DatabaseOps = {
   useCellState<T extends Tables, C extends ColumnDef<T>>(table: T, key: KeyType<T>, column: C) {
@@ -99,7 +99,7 @@ const DatabaseOps = {
   },
 
   generateDefaultRow<T extends Tables>(table: T): OptionalTuple<ColumnTypes<T>> {
-    return Array(Database.getTableColumnCount(table)).fill(undefined) as OptionalTuple<ColumnTypes<T>>;
+    return Database.generateDefaultRow(table);
   },
 
   getCellState<T extends Tables, C extends ColumnDef<T>>(table: T, key: KeyType<T>, column: C) {

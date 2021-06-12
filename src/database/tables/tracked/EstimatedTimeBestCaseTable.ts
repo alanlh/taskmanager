@@ -4,7 +4,7 @@ export default class EstimatedTimeBestCaseTable extends TrackingTable<number> {
   constructor() {
     super({
       tableName: "ESTIMATED_TIME_BEST_CASE",
-      defaultValue: 0,
+      defaultValueGenerator: () => 0,
     });
   }
 }

@@ -12,31 +12,41 @@ type ValidTrackingTableColumn = Exclude<TrackingTableColumn, TrackingTableColumn
 
 type TrackingTableColumnTypes<ValueType> = [
   string, Date,
-  string, ChangeType, ValueType,
+  string, ChangeType, ValueType
 ];
 
 interface ITrackingTableParams<ValueType> {
   tableName: string,
-  defaultValue: ValueType,
+  defaultValueGenerator: () => ValueType,
 }
 
 export default abstract class TrackingTable<ValueType> extends Table<ValidTrackingTableColumn, TrackingTableColumnTypes<ValueType>,
   TrackingTableColumnTypes<ValueType>[TrackingTableColumn.LOG_ID]> {
   constructor({
-    tableName, defaultValue,
+    tableName, defaultValueGenerator,
   }: ITrackingTableParams<ValueType>) {
     super({
       tableName: tableName,
-      columnCount: TrackingTableColumn.__LENGTH,
-      columnNames: [
-        "LOG_ID", "LOG_TIME", "ENTRY_ID", "ENTRY_TYPE", "ENTRY_VALUE"
-      ],
       keyColumn: TrackingTableColumn.LOG_ID,
-      indexedColumns: [
-        TrackingTableColumn.ENTRY_ID, TrackingTableColumn.ENTRY_VALUE,
-      ],
-      defaultValues: ["", new Date(), "", ChangeType.Update, defaultValue],
-      trackingTables: new Map(),
+      columnEnum: TrackingTableColumn,
+      columnParams: {
+        [TrackingTableColumn.LOG_ID]: {
+          defaultValueGenerator: () => this.getUniqueKey(),
+        },
+        [TrackingTableColumn.LOG_TIME]: {
+          defaultValueGenerator: () => new Date(),
+        },
+        [TrackingTableColumn.ENTRY_ID]: {
+          defaultValueGenerator: () => "",
+          indexed: true,
+        },
+        [TrackingTableColumn.ENTRY_TYPE]: {
+          defaultValueGenerator: () => ChangeType.Update,
+        },
+        [TrackingTableColumn.ENTRY_VALUE]: {
+          defaultValueGenerator: defaultValueGenerator,
+        },
+      }
     });
   }
 
@@ -44,4 +54,3 @@ export default abstract class TrackingTable<ValueType> extends Table<ValidTracki
     return this.getUuid();
   }
 }
-

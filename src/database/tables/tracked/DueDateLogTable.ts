@@ -4,7 +4,7 @@ export default class DueDateLogTable extends TrackingTable<Date> {
   constructor() {
     super({
       tableName: "DUE_DATE_LOG",
-      defaultValue: new Date(),
+      defaultValueGenerator: () => new Date(),
     });
   }
 }

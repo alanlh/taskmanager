@@ -1,54 +1,78 @@
-import { Tables, TrackedTables } from "../LocalDatabase";
-import TrackingTable from "./TrackingTable";
+import { ArrayToRecord, DefaultValueGeneratorArray, OptionalTuple } from "../../utility/Types";
+import { TrackedTables } from "../LocalDatabase";
 
 export default abstract class Table<CDef extends number, CType extends any[], KeyType> {
   public readonly tableName: string;
-  private _columnNames: Record<CDef, string>;
-
   public readonly columnCount: number;
-  
   public readonly keyColumn: CDef;
 
-  private readonly defaultValues: CType;
-  
-  public indexedColumns: ReadonlySet<CDef> = new Set();
-  public _indices: Map<CDef, Map<any, Set<KeyType>>> = new Map();
+  public readonly columnNames: Record<CDef, string> = [];
 
+  public readonly columnParams: GenericColumnDefParams<CType>;
+
+  public readonly defaultValueGenerators: DefaultValueGeneratorArray<CType>;
+  public readonly indexedColumns: Set<CDef> = new Set();
+  public readonly trackingTables: ReadonlyMap<CDef, TrackedTables> = new Map();
+  
   protected _data: Map<KeyType, CType> = new Map();
 
-  public readonly trackingTables: ReadonlyMap<CDef, TrackedTables>;
+  public _indices: Map<CDef, Map<any, Set<KeyType>>> = new Map();
 
-  public constructor({ tableName, columnNames, columnCount, keyColumn, indexedColumns, defaultValues, trackingTables}: TableParameters<CDef, CType>) {
+  public constructor({ tableName, keyColumn, columnParams, columnEnum }: TableParameters<CDef, CType>) {
     this.tableName = tableName;
-    this._columnNames = columnNames;
-    this.columnCount = columnCount;
-
+    this.columnCount = columnEnum.__LENGTH;
     this.keyColumn = keyColumn;
-    this.indexedColumns = new Set(indexedColumns);
-    for (const column of indexedColumns) {
-      this._indices.set(column, new Map());
+    this.columnParams = columnParams;
+
+    this.defaultValueGenerators = [] as unknown as DefaultValueGeneratorArray<CType>;
+    
+    for (let column = 0; column < this.columnCount; column++) {
+      const columnData = this.getColumnData(column as CDef);
+
+      (this.columnNames as string[]).push(columnData.columnName ? columnData.columnName : columnEnum[column]);
+
+      if (columnData.indexed) {
+        this.indexedColumns.add(column as CDef);
+        this._indices.set(column as CDef, new Map());
+      }
+
+      (this.defaultValueGenerators as unknown as (() => CType[CDef])[]).push(columnData.defaultValueGenerator); // i hate typescript
+      
+      if (columnData.trackingTable) {
+        (this.trackingTables as Map<CDef, TrackedTables>).set(column as CDef, columnData.trackingTable);
+      }
     }
-
-    this.defaultValues = defaultValues;
-
-    this.trackingTables = trackingTables;
   }
 
   public onLoad() {
     
   }
 
-  public getColumnName(column: CDef): string {
-    return this._columnNames[column];
+  //#region Table metadata
+
+  protected getColumnData<T extends CDef>(column: T): ColumnDefParams<CType[T]> {
+    return this.columnParams[column as never] as unknown as ColumnDefParams<CType[T]>
   }
 
+  public getColumnName(column: CDef): string {
+    return this.columnNames[column];
+  }
+
+  private checkIndexed(column: CDef) {
+    return this.indexedColumns.has(column);
+  }
+
+  //#endregion Table metadata
+
+  //#region Data getters/setters
+  
   public checkRowExists(key: KeyType): boolean {
     return this._data.has(key);
   }
 
   public getData<T extends CDef>(key: KeyType, column: T): CType[T] {
     const row = this._data.get(key);
-    return row ? row[column] : undefined;
+    return row ? row[column] : this.defaultValueGenerators[column]();
   }
 
   public setData<T extends CDef>(key: KeyType, column: T, value: CType[T]): void {
@@ -67,9 +91,38 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
     }
   }
 
-  checkIndexed(column: CDef) {
-    return this.indexedColumns.has(column);
+  /**
+   * Creates a new row in the database with all values empty except for a key.
+   */
+  public createRow(initialValues?: OptionalTuple<CType>): KeyType {
+    const row = (this.defaultValueGenerators as unknown as CType[CDef][]).map((generator: Function) => generator()) as unknown as CType;
+    if (initialValues !== undefined) {
+      for (let i = 0; i < row.length; i++) {
+        if (initialValues[i as CDef] !== undefined) {
+          row[i] = initialValues[i as CDef];
+        }
+      }
+    }
+    let key: KeyType;
+    if (initialValues === undefined ||
+      initialValues[this.keyColumn] === undefined ||
+      this._data.has(row[this.keyColumn])) {
+      // Set a default key if the user didn't provide one or if the key already exists.
+      key = this.getUniqueKey();
+      row[this.keyColumn] = key;
+    } else {
+      key = row[this.keyColumn];
+    }
+    this._data.set(key, row);
+    for (const column of this.indexedColumns) {
+      this.addToIndex(column, row[column], key);
+    }
+    return key;
   }
+
+  //#endregion Data getters/setters
+
+  //#region Index manipulation
 
   public hasRowWithIndex<T extends CDef>(column: T, value: CType[T]): boolean {
     if (!this.checkIndexed(column)) {
@@ -80,7 +133,7 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
   }
 
   public getRowsWithIndex<T extends CDef>(column: T, value: CType[T]): KeyType[] {
-    if (!this.indexedColumns.has(column)) {
+    if (!this.checkIndexed(column)) {
       console.warn(`Table ${this.tableName} does not have an index on column ${this.getColumnName(column)}.`);
       return [];
     }
@@ -108,34 +161,25 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
     }
   }
 
-  /**
-   * Creates a new row in the database with all values empty except for a key.
-   */
-  public createRow(initialValues?: OptionalTuple<CType>): KeyType {
-    const row = Array.from(this.defaultValues) as CType;
-    if (initialValues !== undefined) {
-      for (let i = 0; i < row.length; i++) {
-        if (initialValues[i] !== undefined) {
-          row[i] = initialValues[i];
-        }
-      }
-    }
-    let key: KeyType;
-    if (initialValues === undefined ||
-      initialValues[this.keyColumn] === undefined ||
-      this._data.has(row[this.keyColumn])) {
-      // Set a default key if the user didn't provide one or if the key already exists.
-      key = this.getUniqueKey();
-      row[this.keyColumn] = key;
-    } else {
-      key = row[this.keyColumn];
-    }
-    this._data.set(key, row);
-    for (const column of this.indexedColumns) {
-      this.addToIndex(column, row[column], key);
-    }
-    return key;
+  //#endregion Index manipulation
+
+  //#region Loading and Saving
+
+  protected static toStringDate(date: Date): string {
+    // TODO: Fix later.
+    return date.toUTCString();
   }
+
+  protected static fromStringDate(string: string): Date {
+    // TODO: Probably incorrect, fix later.
+    return new Date(Date.parse(string));
+  }
+
+  protected static identityString(string: string): string {
+    return string;
+  }
+
+  //#endregion Loading and Saving
 
   /**
    * Copied from https://stackoverflow.com/a/2117523
@@ -153,28 +197,21 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
 
 interface TableParameters<CDef extends number, CType extends any[]> {
   tableName: string,
-  columnCount: number,
-  columnNames: Record<CDef, string>, // Use record because iterating can be done using numbers.
+  columnParams: GenericColumnDefParams<CType>,
   keyColumn: CDef,
-  defaultValues: CType,
-  indexedColumns: Iterable<CDef>,
-  trackingTables: Map<CDef, TrackedTables>,
+  columnEnum: Record<number, string> & {"__LENGTH": number},
 };
 
-export type OptionalTuple<T extends any[]> =
-  T extends [infer P1] ? [P1?] :
-  T extends [infer P1, infer P2] ? [P1?, P2?] :
-  T extends [infer P1, infer P2, infer P3] ? [P1?, P2?, P3?] :
-  T extends [infer P1, infer P2, infer P3, infer P4] ? [P1?, P2?, P3?, P4?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5] ? [P1?, P2?, P3?, P4?, P5?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6] ? [P1?, P2?, P3?, P4?, P5?, P6?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11, infer P12] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?, P12?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11, infer P12, infer P13] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?, P12?, P13?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11, infer P12, infer P13, infer P14] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?, P12?, P13?, P14?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11, infer P12, infer P13, infer P14, infer P15] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?, P12?, P13?, P14?, P15?] :
-  T extends [infer P1, infer P2, infer P3, infer P4, infer P5, infer P6, infer P7, infer P8, infer P9, infer P10, infer P11, infer P12, infer P13, infer P14, infer P15, infer P16] ? [P1?, P2?, P3?, P4?, P5?, P6?, P7?, P8?, P9?, P10?, P11?, P12?, P13?, P14?, P15?, P16?] : never;
+type ColumnDefParams<T> = {
+  columnName?: string,
+  defaultValueGenerator: () => T,
+  trackingTable?: TrackedTables,
+  indexed?: boolean,
+  // toString: (val: T) => string,
+  // fromString: (val: string) => T,
+};
+
+export type GenericColumnDefParams<CType extends any[]> = ArrayToRecord<
+{
+  [K in keyof CType]: ColumnDefParams<CType[K]>
+}>;

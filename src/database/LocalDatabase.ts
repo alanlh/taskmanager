@@ -1,6 +1,6 @@
 import StatusLogTable from "./tables/tracked/StatusLogTable";
 import StatusDefinitionTable from "./tables/StatusDefinitionTable";
-import Table, { OptionalTuple } from "./tables/Table";
+import Table from "./tables/Table";
 import DueDateLogTable from "./tables/tracked/DueDateLogTable";
 import JobTable from "./tables/JobTable";
 import TimeLogTable from "./tables/TimeLogTable";
@@ -11,6 +11,7 @@ import { ChangeType } from "../data/ChangeType";
 import EstimatedTimeBestCaseTable from "./tables/tracked/EstimatedTimeBestCaseTable";
 import EstimatedTimeExpectedTable from "./tables/tracked/EstimatedTimeExpectedTable";
 import EstimatedTimeWorstCaseTable from "./tables/tracked/EstimatedTimeWorstCaseTable";
+import { OptionalTuple } from "../utility/Types";
 
 export enum Tables {
   Jobs = "Jobs",
@@ -137,8 +138,8 @@ class LocalDatabase {
     }
   }
 
-  public generateDefaultRow<T extends Tables>(table: T) {
-    return Array(Database.getTableColumnCount(table)).fill(undefined) as OptionalTuple<ColumnTypes<T>>;
+  public generateDefaultRow<T extends Tables>(table: T): OptionalTuple<ColumnTypes<T>> {
+    return Array(Database.getTableColumnCount(table)).fill(undefined) as unknown as OptionalTuple<ColumnTypes<T>>;
   }
 
   public createRow<T extends Tables>(table: T, initialValues?: OptionalTuple<ColumnTypes<T>>) {

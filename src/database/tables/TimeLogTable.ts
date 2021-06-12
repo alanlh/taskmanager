@@ -18,21 +18,24 @@ export default class TimeLogTable extends Table<ValidTimeLogColumn, TimeLogColum
   constructor() {
     super({
       tableName: "TIME_LOG",
-      columnCount: TimeLogColumns.__LENGTH,
-      columnNames: [
-        "LOG_ID", "JOB_ID", "VALUE",
-        "DESCRIPTION",
-      ],
-      defaultValues: [
-        "", "", 0, "",
-      ],
-      indexedColumns: [
-        TimeLogColumns.JOB_ID,
-      ],
       keyColumn: TimeLogColumns.LOG_ID,
-      trackingTables: new Map([
-        [TimeLogColumns.VALUE, Tables.TimeLogHistory],
-      ]),
+      columnEnum: TimeLogColumns,
+      columnParams: {
+        [TimeLogColumns.LOG_ID]: {
+          defaultValueGenerator: () => this.getUniqueKey(),
+        },
+        [TimeLogColumns.JOB_ID]: {
+          defaultValueGenerator: () => "",
+          indexed: true,
+        },
+        [TimeLogColumns.VALUE]: {
+          defaultValueGenerator: () => 0,
+          trackingTable: Tables.TimeLogHistory,
+        },
+        [TimeLogColumns.DESCRIPTION]: {
+          defaultValueGenerator: () => "",
+        },
+      }
     });
   }
   

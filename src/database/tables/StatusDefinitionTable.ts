@@ -1,5 +1,5 @@
 import { CompletionStatusType, CompletionStatus, getCompletionStatusKey, getCompletionStatusName } from "../../data/CompletionStatus";
-import Table from "./Table";
+import Table, { GenericColumnDefParams } from "./Table";
 
 export enum StatusDefinitionColumn {
   KEY, TYPE, NAME, DESCRIPTION,
@@ -17,14 +17,24 @@ export default class StatusDefinitionTable extends Table<ValidStatusDefinitionCo
   constructor() {
     super({
       tableName: "STATUS_DEFINTIIONS",
-      columnCount: StatusDefinitionColumn.__LENGTH,
-      columnNames: [
-        "KEY", "TYPE", "NAME", "DESCRIPTION"
-      ],
-      indexedColumns: [StatusDefinitionColumn.KEY, StatusDefinitionColumn.TYPE],
-      defaultValues: ["", "", "", ""],
+      columnParams: {
+        [StatusDefinitionColumn.KEY]: {
+          defaultValueGenerator: () => this.getUniqueKey(),
+          indexed: true,
+        },
+        [StatusDefinitionColumn.TYPE]: {
+          indexed: true,
+          defaultValueGenerator: () => "",
+        },
+        [StatusDefinitionColumn.NAME]: {
+          defaultValueGenerator: () => "",
+        },
+        [StatusDefinitionColumn.DESCRIPTION]: {
+          defaultValueGenerator: () => "",
+        } 
+      },
       keyColumn: StatusDefinitionColumn.KEY,
-      trackingTables: new Map(),
+      columnEnum: StatusDefinitionColumn,
     })
   }
 

@@ -4,7 +4,7 @@ export default class TimeLogHistoryTable extends TrackingTable<number> {
   constructor() {
     super({
       tableName: "TIME_LOG_HISTORY",
-      defaultValue: 0,
+      defaultValueGenerator: () => 0,
     });
   }
 }
