@@ -1,3 +1,7 @@
+.time-log-field {
+  margin: 1vh 0vw;
+}
+
 .time-log-field-upper {
   display: flex;
   flex-direction: row;

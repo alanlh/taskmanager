@@ -17,6 +17,7 @@
 .project-header-left {
   flex: 1 1 50%;
   display: flex;
+  align-items: center;
 }
 
 .project-expand-button {

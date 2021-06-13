@@ -1,19 +1,19 @@
 import React, { useCallback, useState } from "react";
 import TaskLine from "./TaskLine";
 import "./ProjectLine.css"
-import PopupContainer from "../../popup/PopupContainer";
 import CompletionStatusField from "../../fields/CompletionStatusField";
 import JobOps from "../../../operations/JobOps";
 import JobPopup from "./JobPopup";
 import "./JobLine.css";
+import LocalSettingOps from "../../../operations/LocalSettingOps";
 
 interface IProjectLineParams {
   projectId: string,
 }
 
 const ProjectLine = ({ projectId }: IProjectLineParams) => {
-  const [name, setName] = JobOps.useName(projectId);
-  const [description, setDescription] = JobOps.useDescription(projectId);
+  const [name] = JobOps.useName(projectId);
+  const [description] = JobOps.useDescription(projectId);
   const [childTaskIds] = JobOps.useChildTasks(projectId);
   const [childProjectIds] = JobOps.useChildProjects(projectId);
 
@@ -32,13 +32,9 @@ const ProjectLine = ({ projectId }: IProjectLineParams) => {
     setBodyVisible(true);
   }, [projectId, setBodyVisible]);
 
-  const [isPopupOpen, setPopupOpen] = useState(false);
-  const openPopup = useCallback(() => {
-    setPopupOpen(true);
-  }, [setPopupOpen]);
-  const closePopup = useCallback(() => {
-    setPopupOpen(false);
-  }, [setPopupOpen]);
+  const requestOpenPopup = useCallback(() => {
+    LocalSettingOps.requestOpenPopup(projectId);
+  }, [projectId]);
 
   return <div className="project">
     <div className="project-header">
@@ -53,7 +49,7 @@ const ProjectLine = ({ projectId }: IProjectLineParams) => {
         <button className="job-button" onClick={onCreateChildProject}>Add Project</button>
         <button className="job-button" onClick={onCreateChildTask}>Add Task</button>
         <CompletionStatusField id={projectId}/>
-        <button className="job-button" onClick={openPopup}>Edit</button>
+        <button className="job-button" onClick={requestOpenPopup}>Edit</button>
       </div>
     </div>
     <div className={`project-body ${bodyVisible ? "" : "hidden"}`}>
@@ -83,7 +79,6 @@ const ProjectLine = ({ projectId }: IProjectLineParams) => {
         }
       </div>
     </div>
-    <JobPopup jobId={projectId} isOpen={isPopupOpen} onClose={closePopup} />
   </div>
 }
 

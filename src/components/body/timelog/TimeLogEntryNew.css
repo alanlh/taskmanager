@@ -1,10 +1,3 @@
-.time-log-widget {
-  position: relative;
-  width: max-content;
-  background-color: aqua;
-  border: 2px solid black;
-  padding: 5%;
-  padding-left: 1em;
-  display: flex;
-  flex-direction: row;
+.time-log-entry-new {
+  height: fit-content;
 }

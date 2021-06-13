@@ -12,6 +12,7 @@ import EstimatedTimeBestCaseTable from "./tables/tracked/EstimatedTimeBestCaseTa
 import EstimatedTimeExpectedTable from "./tables/tracked/EstimatedTimeExpectedTable";
 import EstimatedTimeWorstCaseTable from "./tables/tracked/EstimatedTimeWorstCaseTable";
 import { OptionalTuple } from "../utility/Types";
+import LocalSettingsTable from "./tables/LocalSettingsTable";
 
 export enum Tables {
   Jobs = "Jobs",
@@ -25,6 +26,8 @@ export enum Tables {
   EstTimeBest = "EstTimeBest",
   EstTimeExpected = "EstTimeExpected",
   EstTimeWorst = "EstTimeWorst",
+
+  LocalSettings = "LocalSettings",
 }
 
 export type TrackedTables = Tables.DueDateLog | Tables.TimeLogHistory | Tables.StatusLog
@@ -48,6 +51,7 @@ const DatabaseTables = {
   [Tables.EstTimeBest]: new EstimatedTimeBestCaseTable(),
   [Tables.EstTimeExpected]: new EstimatedTimeExpectedTable(),
   [Tables.EstTimeWorst]: new EstimatedTimeWorstCaseTable(),
+  [Tables.LocalSettings]: new LocalSettingsTable(),
 } as const;
 
 class LocalDatabase {

@@ -29,7 +29,7 @@ const TimeLogList = ({ jobId, }: ITimeLogListParams) => {
       }
     </div>
     {
-      isNewEntryShown ? <TimeLogEntryNew taskId={jobId} onLog={hideNewEntry} className="time-log-list-header-new-log-entry" /> : undefined
+      isNewEntryShown ? <TimeLogEntryNew taskId={jobId} onLog={hideNewEntry} className="time-log-list-header-new-log-entry" onCancel={hideNewEntry} /> : undefined
     }
     <div className="time-log-list-entries">
       {

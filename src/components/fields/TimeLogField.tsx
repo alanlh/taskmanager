@@ -72,7 +72,7 @@ const TimeLogField = ({
     <div className="time-log-field-lower">
       <button onClick={onClickEditButton} hidden={editMode || !allowToggleEditMode} className="time-log-field-button" ref={editButtonRef}>Edit</button>
       <button onClick={onSave} hidden={!editMode} className="time-log-field-button">Save</button>
-      <button onClick={onClickCancelButton} hidden={!editMode || !allowToggleEditMode}className="time-log-field-button">Cancel</button>
+      <button onClick={onClickCancelButton} hidden={!editMode || !allowToggleEditMode} className="time-log-field-button">Cancel</button>
       <button onClick={onDelete} hidden={!allowDelete || editMode} className="time-log-field-button">Delete</button>
     </div>
   </div>

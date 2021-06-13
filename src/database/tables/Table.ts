@@ -5,12 +5,13 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
   public readonly tableName: string;
   public readonly columnCount: number;
   public readonly keyColumn: CDef;
+  public readonly columnEnum: Record<number, string> & { "__LENGTH": number };
 
   public readonly columnNames: Record<CDef, string> = [];
 
   public readonly columnParams: GenericColumnDefParams<CType>;
 
-  public readonly defaultValueGenerators: DefaultValueGeneratorArray<CType>;
+  public readonly defaultValueGenerators: OptionalTuple<DefaultValueGeneratorArray<CType>>;
   public readonly indexedColumns: Set<CDef> = new Set();
   public readonly trackingTables: ReadonlyMap<CDef, TrackedTables> = new Map();
   
@@ -23,8 +24,9 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
     this.columnCount = columnEnum.__LENGTH;
     this.keyColumn = keyColumn;
     this.columnParams = columnParams;
+    this.columnEnum = columnEnum;
 
-    this.defaultValueGenerators = [] as unknown as DefaultValueGeneratorArray<CType>;
+    this.defaultValueGenerators = [] as unknown as OptionalTuple<DefaultValueGeneratorArray<CType>>;
     
     for (let column = 0; column < this.columnCount; column++) {
       const columnData = this.getColumnData(column as CDef);
@@ -36,7 +38,7 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
         this._indices.set(column as CDef, new Map());
       }
 
-      (this.defaultValueGenerators as unknown as (() => CType[CDef])[]).push(columnData.defaultValueGenerator); // i hate typescript
+      this.defaultValueGenerators.push(columnData.defaultValueGenerator); // i hate typescript
       
       if (columnData.trackingTable) {
         (this.trackingTables as Map<CDef, TrackedTables>).set(column as CDef, columnData.trackingTable);
@@ -70,9 +72,9 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
     return this._data.has(key);
   }
 
-  public getData<T extends CDef>(key: KeyType, column: T): CType[T] {
+  public getData<T extends CDef>(key: KeyType, column: T): CType[T] | undefined {
     const row = this._data.get(key);
-    return row ? row[column] : this.defaultValueGenerators[column]();
+    return row ? row[column] : undefined;
   }
 
   public setData<T extends CDef>(key: KeyType, column: T, value: CType[T]): void {
@@ -95,23 +97,23 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
    * Creates a new row in the database with all values empty except for a key.
    */
   public createRow(initialValues?: OptionalTuple<CType>): KeyType {
-    const row = (this.defaultValueGenerators as unknown as CType[CDef][]).map((generator: Function) => generator()) as unknown as CType;
+    const row = this.defaultValueGenerators.map((generator) => generator ? generator() : undefined) as CType;
     if (initialValues !== undefined) {
       for (let i = 0; i < row.length; i++) {
         if (initialValues[i as CDef] !== undefined) {
           row[i] = initialValues[i as CDef];
+          continue;
+        }
+        if (this.defaultValueGenerators[i] === undefined) {
+          console.error("Unable to create row. Column ", this.columnEnum[i], " in table ", this.tableName, " does not have a default value.");
         }
       }
     }
-    let key: KeyType;
-    if (initialValues === undefined ||
-      initialValues[this.keyColumn] === undefined ||
-      this._data.has(row[this.keyColumn])) {
-      // Set a default key if the user didn't provide one or if the key already exists.
-      key = this.getUniqueKey();
-      row[this.keyColumn] = key;
-    } else {
-      key = row[this.keyColumn];
+
+    // At this point, every cell in the row should have a value. Now just make sure that the key is unique.
+    let key: KeyType = row[this.keyColumn];
+    if (this._data.has(key)) {
+      console.error("Key", key, "already exists for table", this.tableName);
     }
     this._data.set(key, row);
     for (const column of this.indexedColumns) {
@@ -185,8 +187,6 @@ export default abstract class Table<CDef extends number, CType extends any[], Ke
    * Copied from https://stackoverflow.com/a/2117523
    * @returns An almost unique identifier
    */
-  protected abstract getUniqueKey(): KeyType;
-
   protected getUuid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       var r = Math.random() * 16 | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
@@ -204,7 +204,7 @@ interface TableParameters<CDef extends number, CType extends any[]> {
 
 type ColumnDefParams<T> = {
   columnName?: string,
-  defaultValueGenerator: () => T,
+  defaultValueGenerator?: () => T,
   trackingTable?: TrackedTables,
   indexed?: boolean,
   // toString: (val: T) => string,

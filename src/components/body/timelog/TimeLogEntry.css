@@ -1,7 +1,7 @@
 .time-log-entry {
   display: flex;
   flex-direction: row;
-  padding: 0.5vh 0;
+  padding: 0.5vh 5.5vw;
 }
 
 .time-log-entry-time {

@@ -16,6 +16,7 @@
 .task-header-left {
   flex: 1 1 20%;
   display: flex;
+  align-items: center;
 }
 
 .task-expand-button {

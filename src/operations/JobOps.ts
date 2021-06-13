@@ -4,6 +4,7 @@ import { Tables } from "../database/LocalDatabase";
 import { JobColumn } from "../database/tables/JobTable";
 import { StatusTableColumns } from "../database/tables/StatusTable";
 import DatabaseOps from "./DatabaseOps";
+import LocalSettingOps from "./LocalSettingOps";
 
 const JobOps = {
   useName(jobId: string) {
@@ -66,6 +67,10 @@ const JobOps = {
     completionStatusValue[StatusTableColumns.STATUS_TYPE] = CompletionStatusType;
     completionStatusValue[StatusTableColumns.STATUS_VALUE] = getCompletionStatusKey(CompletionStatus.Planned);
     DatabaseOps.createRow(Tables.Status, completionStatusValue);
+
+    LocalSettingOps.requestOpenPopup(jobId);
+
+    return jobId;
   },
 
   createChildTask(projectId?: string) {
@@ -80,6 +85,10 @@ const JobOps = {
     completionStatusValue[StatusTableColumns.STATUS_TYPE] = CompletionStatusType;
     completionStatusValue[StatusTableColumns.STATUS_VALUE] = getCompletionStatusKey(CompletionStatus.Planned);
     DatabaseOps.createRow(Tables.Status, completionStatusValue);
+
+    LocalSettingOps.requestOpenPopup(jobId);
+
+    return jobId;
   },
 }
 

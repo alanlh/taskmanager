@@ -3,12 +3,12 @@ import JobOps from "../../../operations/JobOps";
 import CompletionStatusField from "../../fields/CompletionStatusField";
 import DueDateField from "../../fields/DueDateField";
 import TimeLogEntryNew from "../timelog/TimeLogEntryNew";
-import JobPopup from "./JobPopup";
 import "./TaskLine.css";
 import "./JobLine.css";
-import { useOnContainerBlur, useToggleState } from "../../../operations/UtilityHooks";
+import { useToggleState } from "../../../operations/UtilityHooks";
 import { formatDuration } from "../../../utility/StringUtility";
 import PopupContainer from "../../popup/PopupContainer";
+import LocalSettingOps from "../../../operations/LocalSettingOps";
 
 interface ITaskLineParams {
   taskId: string,
@@ -25,8 +25,11 @@ const TaskLine = ({ taskId }: ITaskLineParams) => {
     setBodyVisible(!bodyVisible);
   }, [bodyVisible]);
 
-  const [isPopupOpen, openPopup, closePopup] = useToggleState(false);
   const [isTimeLogWidgetOpen, showTimeLogWidget, closeTimeLogWidget] = useToggleState(false);
+
+  const requestOpenPopup = useCallback(() => {
+    LocalSettingOps.requestOpenPopup(taskId);
+  }, [taskId])
 
   return <div className="task">
     <div className="task-header">
@@ -37,14 +40,14 @@ const TaskLine = ({ taskId }: ITaskLineParams) => {
       </div>
       <div className="task-header-right">
         <CompletionStatusField id={taskId} />
-        <button className="job-button" onClick={openPopup}>Edit</button>
+        <button className="job-button" onClick={requestOpenPopup}>Edit</button>
         <DueDateField id={taskId} />
         <div>
           <button onClick={isTimeLogWidgetOpen ? closeTimeLogWidget : showTimeLogWidget} className="time-log-widget-button job-button">Log Time</button>
           {
             <PopupContainer isOpen={isTimeLogWidgetOpen} onClose={closeTimeLogWidget} onRequestClose={closeTimeLogWidget} closeOnEsc closeOnOverlayClick>
               <div>
-                <TimeLogEntryNew taskId={taskId} onLog={closeTimeLogWidget} />
+                <TimeLogEntryNew taskId={taskId} onLog={closeTimeLogWidget} onCancel={closeTimeLogWidget} />
               </div>
             </PopupContainer>
           }
@@ -58,7 +61,6 @@ const TaskLine = ({ taskId }: ITaskLineParams) => {
       </div>
       <p>Time Spent: {formatDuration(timeSpent)}</p>
     </div>
-    <JobPopup jobId={taskId} onClose={closePopup} isOpen={isPopupOpen} />
   </div>
 }
 

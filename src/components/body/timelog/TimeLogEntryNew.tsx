@@ -7,9 +7,10 @@ interface ITimeLogEntryNew {
   taskId: string,
   onLog?: () => void;
   className?: string,
+  onCancel?: () => void;
 }
 
-const TimeLogEntryNew = ({ taskId, onLog, className }: ITimeLogEntryNew) => {
+const TimeLogEntryNew = ({ taskId, onLog, className, onCancel }: ITimeLogEntryNew) => {
   const [time, setTime] = useState(15);
   const [description, setDescription] = useState("");
 
@@ -25,7 +26,9 @@ const TimeLogEntryNew = ({ taskId, onLog, className }: ITimeLogEntryNew) => {
     duration={time} setDuration={setTime}
     editMode={true}
     onSubmit={logInputTime}
-    className={className}
+    onSetReadonly={onCancel}
+    className={`time-log-entry-new ${className}`}
+    allowToggleEditMode
   />;
 }
 

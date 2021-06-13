@@ -3,10 +3,14 @@ import ProjectLine from "./jobs/ProjectLine";
 import TaskLine from "./jobs/TaskLine";
 import "./Body.css";
 import JobOps from "../../operations/JobOps";
+import JobPopup from "./jobs/JobPopup";
+import LocalSettingOps from "../../operations/LocalSettingOps";
 
 const Body = () => {
   const [taskIds] = JobOps.useRootTasks();
   const [rootProjects] = JobOps.useRootProjects();
+
+  const [openedJobId] = LocalSettingOps.useJobWithPopupOpen();
 
   const onCreateChildProject = useCallback(() => {
     JobOps.createRootProject();
@@ -36,6 +40,9 @@ const Body = () => {
         })
       }
     </div>
+    {
+      openedJobId !== undefined ? <JobPopup jobId={openedJobId} onClose={LocalSettingOps.closePopup} isOpen={true} /> : undefined
+    }
   </div>;
 };
 
